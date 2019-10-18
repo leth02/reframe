@@ -85,6 +85,45 @@ class Relation(pd.DataFrame):
         """
         return Relation(super().query(q).drop_duplicates())
 
+    def select(self, query):
+        """return a new relation with tuples matching the query condition
+
+        :param query:  a query string
+        :return: a Relation
+
+        The relation returned from the select query will have different index from the testing relation
+        Reset the index to be auto-increment
+
+        """
+
+        temp = Relation(super().query(query).drop_duplicates())
+        temp1 = temp.reset_index()
+        result = temp1.drop('index', axis = 1)
+        return result
+    
+    def product(self, other):
+        """
+        The cartesian product method below return the same value, but with different order.
+        The product method return the same "product" method from Figure 4-7, Database Design and Implementation by Edward Sciore.
+        (with each of all records of table 1 combine to each record in table 2)
+        """
+
+        self['_productkey_'] = 1
+        other['_productkey_'] = 1
+        res = pd.merge(other,self, on='_productkey_')
+        self.drop('_productkey_',axis=1,inplace=True)
+        other.drop('_productkey_',axis=1,inplace=True)
+
+        res.drop('_productkey_',axis=1,inplace=True)
+
+        new_columns = self.columns.append(other.columns)
+        print(new_columns)
+        response = res.reindex(columns = new_columns)
+        #print(res.columns)
+
+        return Relation(response.drop_duplicates())
+
+
     def sort(self, *args, **kwargs):
         """sort the relation on the given columns
 
